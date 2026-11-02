@@ -1,0 +1,17 @@
+# Maven & Build output
+target/
+.quarkus/
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# OS & Logs
+.DS_Store
+*.log
