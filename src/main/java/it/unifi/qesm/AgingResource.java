@@ -20,7 +20,8 @@ public class AgingResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String compute() {
         long usage = requestCounter.incrementAndGet();
-        long iterations = usage * 500_000L;
+        //long iterations = usage * 500_000L;
+        long iterations = usage * 2_500L;
         double dummyResult = 0;
         
         for (long i = 0; i < iterations; i++) {
