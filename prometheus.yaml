@@ -5,17 +5,28 @@ metadata:
 data:
   prometheus.yml: |
     global:
-      scrape_interval: 5s # Raccoglie le metriche ogni 5 secondi
+      scrape_interval: 2s
+      evaluation_interval: 2s
     scrape_configs:
-      - job_name: 'aging-service'
-        metrics_path: '/q/metrics'
-        static_configs:
-          - targets: ['aging-service-lb:8080']
+      - job_name: 'aging-service-replicas'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: aging-service
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            action: keep
+            regex: "8080"
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - target_label: __metrics_path__
+            replacement: /q/metrics
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prometheus
+  name: prometheus-deployment
 spec:
   replicas: 1
   selector:
@@ -28,9 +39,10 @@ spec:
     spec:
       containers:
         - name: prometheus
-          image: prom/prometheus:v2.45.0
+          image: prom/prometheus:v2.48.0
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.retention.time=1h"
           ports:
             - containerPort: 9090
           volumeMounts:
@@ -47,8 +59,8 @@ metadata:
   name: prometheus-service
 spec:
   type: ClusterIP
+  selector:
+    app: prometheus
   ports:
     - port: 9090
       targetPort: 9090
-  selector:
-    app: prometheus
