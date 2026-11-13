@@ -15,3 +15,5 @@ target/
 # OS & Logs
 .DS_Store
 *.log
+*.csv
+minikube-linux-amd64

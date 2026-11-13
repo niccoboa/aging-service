@@ -1,16 +1,32 @@
 apiVersion: v1
+kind: Service
+metadata:
+  name: aging-service-metrics
+spec:
+  clusterIP: None
+  selector:
+    app: aging-service
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
 data:
   prometheus.yml: |
     global:
-      scrape_interval: 5s # Raccoglie le metriche ogni 5 secondi
+      scrape_interval: 2s
     scrape_configs:
-      - job_name: 'aging-service'
+      - job_name: 'aging-service-pods'
         metrics_path: '/q/metrics'
-        static_configs:
-          - targets: ['aging-service-lb:8080']
+        dns_sd_configs:
+          - names:
+              - 'aging-service-metrics.default.svc.cluster.local'
+            type: 'A'
+            port: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -31,8 +47,16 @@ spec:
           image: prom/prometheus:v2.45.0
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.retention.time=2h"
           ports:
             - containerPort: 9090
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
           volumeMounts:
             - name: config-volume
               mountPath: /etc/prometheus

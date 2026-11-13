@@ -12,7 +12,7 @@ export const options = {
 export default function () {
   // Genera un valore casuale di 'usage' tra 5 e 20 per variare il carico di lavoro
   const usage = Math.floor(Math.random() * 15) + 5;
-  const res = http.get(`http://localhost:8080/compute?usage=${usage}`);
+  const res = http.get(`http://192.168.49.2:30201/compute?usage=${usage}`);
 
   check(res, {
     'status is 200': (r) => r.status === 200,
